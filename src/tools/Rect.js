@@ -18,6 +18,7 @@ export default class Rect extends Tool {
     this.ctx.beginPath();
     this.startY = e.pageY - e.target.offsetTop;
     this.startX = e.pageX - e.target.offsetLeft;
+    this.saved = this.canvas.toDataURL();
   }
   mouseMoveHandler(e) {
     if (this.mouseDown) {

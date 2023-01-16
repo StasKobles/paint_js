@@ -8,6 +8,11 @@ import Eraser from "../tools/Eraser";
 import Line from "../tools/Line";
 import Rect from "../tools/Rect";
 const Toolbar = () => {
+  const changeColor = (e) => {
+    toolState.setFillColor(e.target.value);
+    toolState.setStrokeColor(e.target.value);
+  };
+
   return (
     <div className="toolbar">
       <button
@@ -30,9 +35,19 @@ const Toolbar = () => {
         className="toolbar__btn line"
         onClick={() => toolState.setTool(new Line(canvasState.canvas))}
       ></button>
-      <input type="color" style={{ marginLeft: 10 }} />
-      <button className="toolbar__btn undo"></button>
-      <button className="toolbar__btn redo"></button>
+      <input
+        type="color"
+        style={{ marginLeft: 10 }}
+        onChange={(e) => changeColor(e)}
+      />
+      <button
+        className="toolbar__btn undo"
+        onClick={() => canvasState.undo()}
+      ></button>
+      <button
+        className="toolbar__btn redo"
+        onClick={() => canvasState.redo()}
+      ></button>
       <button className="toolbar__btn save"></button>
     </div>
   );
