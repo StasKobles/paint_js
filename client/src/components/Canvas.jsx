@@ -7,6 +7,9 @@ import canvasState from "../store/canvasState";
 import toolState from "../store/toolState";
 import "../styles/canvas.scss";
 import Brush from "../tools/Brush";
+import Circle from "../tools/Circle";
+import Eraser from "../tools/Eraser";
+import Line from "../tools/Line";
 import Rect from "../tools/Rect";
 const Canvas = observer(() => {
   const canvasRef = useRef();
@@ -51,7 +54,17 @@ const Canvas = observer(() => {
     const ctx = canvasRef.current.getContext("2d");
     switch (figure.type) {
       case "brush":
-        Brush.draw(ctx, figure.x, figure.y);
+        Brush.draw(
+          ctx,
+          figure.x,
+          figure.y,
+          figure.lineWidth,
+          figure.color,
+          figure.strokeStyle
+        );
+        break;
+      case "eraser":
+        Eraser.draw(ctx, figure.x, figure.y, figure.lineWidth);
         break;
       case "rect":
         Rect.staticDraw(
@@ -60,7 +73,32 @@ const Canvas = observer(() => {
           figure.y,
           figure.width,
           figure.height,
-          figure.color
+          figure.colorFill,
+          figure.strokeStyle,
+          figure.lineWidth
+        );
+        break;
+      case "circle":
+        Circle.staticDraw(
+          ctx,
+          figure.x,
+          figure.y,
+          figure.r,
+          figure.colorFill,
+          figure.strokeStyle,
+          figure.lineWidth
+        );
+        break;
+      case "line":
+        Line.staticDraw(
+          ctx,
+          figure.x,
+          figure.y,
+          figure.currentX,
+          figure.currentY,
+          figure.colorFill,
+          figure.lineWidth,
+          figure.strokeStyle
         );
         break;
       case "finish":

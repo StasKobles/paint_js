@@ -1,8 +1,8 @@
 import Tool from "./Tools";
 
 export default class Circle extends Tool {
-  constructor(canvas) {
-    super(canvas);
+  constructor(canvas, socket, id) {
+    super(canvas, socket, id);
     this.listen();
   }
   listen() {
@@ -12,6 +12,21 @@ export default class Circle extends Tool {
   }
   mouseUpHandler(e) {
     this.mouseDown = false;
+    this.socket.send(
+      JSON.stringify({
+        method: "draw",
+        id: this.id,
+        figure: {
+          type: "circle",
+          x: this.startX,
+          y: this.startY,
+          r: this.r,
+          colorFill: this.ctx.fillStyle,
+          lineWidth: this.ctx.lineWidth,
+          strokeStyle: this.ctx.strokeStyle,
+        },
+      })
+    );
   }
   mouseDownHandler(e) {
     this.mouseDown = true;
@@ -26,21 +41,30 @@ export default class Circle extends Tool {
       let currentY = e.pageY - e.target.offsetTop;
       let width = currentX - this.startX;
       let height = currentY - this.startY;
-      let r = Math.sqrt(width ** 2 + height ** 2);
-      this.draw(this.startX, this.startY, r);
+      this.r = Math.sqrt(width ** 2 + height ** 2);
+      this.draw(this.startX, this.startY, this.r);
     }
   }
 
   draw(x, y, r) {
     const img = new Image();
     img.src = this.saved;
-    img.onload = async function () {
+    img.onload = () => {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
       this.ctx.beginPath();
       this.ctx.arc(x, y, r, 0, 2 * Math.PI);
       this.ctx.fill();
       this.ctx.stroke();
-    }.bind(this);
+    };
+  }
+  static staticDraw(ctx, x, y, r, colorFill, strokeStyle, lineWidth) {
+    ctx.fillStyle = colorFill;
+    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = strokeStyle;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
   }
 }
