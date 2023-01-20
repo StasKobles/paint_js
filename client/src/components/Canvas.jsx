@@ -1,24 +1,49 @@
-import { observer } from "mobx-react-lite";
 import React, { useEffect, useRef, useState } from "react";
-import Button from "react-bootstrap/Button";
-import Modal from "react-bootstrap/Modal";
-import { useParams } from "react-router-dom";
+import "../styles/canvas.scss";
+import { observer } from "mobx-react-lite";
 import canvasState from "../store/canvasState";
 import toolState from "../store/toolState";
-import "../styles/canvas.scss";
 import Brush from "../tools/Brush";
-import Circle from "../tools/Circle";
-import Eraser from "../tools/Eraser";
-import Line from "../tools/Line";
+import { Modal, Button } from "react-bootstrap";
+import { useParams } from "react-router-dom";
 import Rect from "../tools/Rect";
+import axios from "axios";
+import Eraser from "../tools/Eraser";
+import Circle from "../tools/Circle";
+import Line from "../tools/Line";
+
 const Canvas = observer(() => {
   const canvasRef = useRef();
   const usernameRef = useRef();
   const [modal, setModal] = useState(true);
   const params = useParams();
+
   useEffect(() => {
     canvasState.setCanvas(canvasRef.current);
+    let ctx = canvasRef.current.getContext("2d");
+    axios
+      .get(`${process.env.REACT_APP_WEB_SAVE_PORT}${params.id}`)
+      .then((response) => {
+        const img = new Image();
+        img.src = response.data;
+        img.onload = () => {
+          ctx.clearRect(
+            0,
+            0,
+            canvasRef.current.width,
+            canvasRef.current.height
+          );
+          ctx.drawImage(
+            img,
+            0,
+            0,
+            canvasRef.current.width,
+            canvasRef.current.height
+          );
+        };
+      });
   }, []);
+
   useEffect(() => {
     if (canvasState.username) {
       const socket = new WebSocket(process.env.REACT_APP_WEB_SOCKET_PORT);
@@ -26,7 +51,7 @@ const Canvas = observer(() => {
       canvasState.setSessionId(params.id);
       toolState.setTool(new Brush(canvasRef.current, socket, params.id));
       socket.onopen = () => {
-        console.log("Connection is correct");
+        console.log("Connection is working");
         socket.send(
           JSON.stringify({
             id: params.id,
@@ -39,7 +64,7 @@ const Canvas = observer(() => {
         let msg = JSON.parse(event.data);
         switch (msg.method) {
           case "connection":
-            console.log(`User ${msg.username} is connected`);
+            console.log(`User ${msg.username} connected`);
             break;
           case "draw":
             drawHandler(msg);
@@ -109,29 +134,38 @@ const Canvas = observer(() => {
 
   const mouseDownHandler = () => {
     canvasState.pushToUndo(canvasRef.current.toDataURL());
+    axios
+      .post(`${process.env.REACT_APP_WEB_SAVE_PORT}${params.id}`, {
+        img: canvasRef.current.toDataURL(),
+      })
+      .then((response) => console.log(response.data));
   };
-  const connectionHandler = () => {
+
+  const connectHandler = () => {
     canvasState.setUsername(usernameRef.current.value);
     setModal(false);
   };
+
   return (
     <div className="canvas">
       <Modal show={modal} onHide={() => {}}>
-        <Modal.Header closeButton>
+        <Modal.Header>
           <Modal.Title>Type your name</Modal.Title>
         </Modal.Header>
-        <input type="text" style={{ width: "150px" }} ref={usernameRef} />
+        <Modal.Body>
+          <input type="text" ref={usernameRef} />
+        </Modal.Body>
         <Modal.Footer>
-          <Button variant="primary" onClick={() => connectionHandler()}>
-            Start
+          <Button variant="secondary" onClick={() => connectHandler()}>
+            Log in
           </Button>
         </Modal.Footer>
       </Modal>
       <canvas
+        onMouseDown={() => mouseDownHandler()}
         ref={canvasRef}
         width={600}
         height={400}
-        onMouseDown={() => mouseDownHandler()}
       />
     </div>
   );
