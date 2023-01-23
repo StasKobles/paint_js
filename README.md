@@ -1,4 +1,4 @@
-# This is online Paint is pet project
+# This is online Paint pet project
 Implemented cooperative painting in canvas, different tool (brush, rect, circle, eraser, line), undo and redo paintings, saving as jpeg file, changing colors and line weight. You can add your friends to any canvas.
 
 ## Stack
